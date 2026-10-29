@@ -1,0 +1,145 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LINUX_VERSION: "6.12.59"
+  QEMU_VERSION: "10.1.5"
+
+jobs:
+  host:
+    name: host tests (C++ with ASan/UBSan, Rust, Python)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install packages
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends libgtest-dev zlib1g-dev ninja-build python3-yaml python3-pytest
+          pipx install ruff
+      - name: Generated register files are up to date
+        run: python3 tools/gen_regs.py --check
+      - name: Python lint and tests
+        run: |
+          ruff check fw tools tests
+          ruff format --check fw tools tests
+          python3 -m pytest -q tests
+      - name: C++ runtime and reference datapath (ASan + UBSan)
+        run: |
+          cmake -S . -B build/host -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLACC_SANITIZE=ON
+          ninja -C build/host
+          ctest --test-dir build/host --output-on-failure
+      - name: laccctl (fmt, clippy, tests)
+        working-directory: laccctl
+        run: |
+          cargo fmt --check
+          cargo clippy --release -- -D warnings
+          cargo test --release
+
+  bringup:
+    name: kernel, driver checks and the bring-up run in QEMU
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install packages
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends \
+            build-essential flex bison bc libelf-dev libssl-dev sparse \
+            ninja-build pkg-config libglib2.0-dev libpixman-1-dev zlib1g-dev libfdt-dev python3-venv \
+            busybox-static openocd python3-yaml cmake
+
+      - name: Cache the guest kernel
+        id: kernel-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/linux
+            ~/linux-bzImage
+          key: linux-${{ env.LINUX_VERSION }}-${{ hashFiles('guest/kernel.config', 'scripts/build-kernel.sh') }}
+      - name: Build the guest kernel (KASAN, lockdep, DMA-API debug, kmemleak)
+        if: steps.kernel-cache.outputs.cache-hit != 'true'
+        run: |
+          cd ~
+          major=${LINUX_VERSION%%.*}
+          curl -fsSLO "https://cdn.kernel.org/pub/linux/kernel/v${major}.x/linux-${LINUX_VERSION}.tar.xz"
+          curl -fsSLO "https://cdn.kernel.org/pub/linux/kernel/v${major}.x/sha256sums.asc"
+          grep " linux-${LINUX_VERSION}.tar.xz\$" sha256sums.asc | sha256sum -c -
+          tar xf "linux-${LINUX_VERSION}.tar.xz" && mv "linux-${LINUX_VERSION}" linux && rm "linux-${LINUX_VERSION}.tar.xz"
+          "$GITHUB_WORKSPACE/scripts/build-kernel.sh" ~/linux
+          cp ~/linux/arch/x86/boot/bzImage ~/linux-bzImage
+          # keep only what out-of-tree modules build against (config, headers, scripts, Module.symvers)
+          make -s -C ~/linux clean
+
+      - name: Cache QEMU with the card model
+        id: qemu-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/qemu-lacc
+          key: qemu-${{ env.QEMU_VERSION }}-${{ hashFiles('qemu/hw/misc/lacc.c', 'include/lacc_hw.h', 'include/lacc_regs.h', 'scripts/build-qemu.sh') }}
+      - name: Build QEMU with the card model
+        if: steps.qemu-cache.outputs.cache-hit != 'true'
+        run: |
+          cd ~
+          curl -fsSLO "https://download.qemu.org/qemu-${QEMU_VERSION}.tar.xz"
+          sha256sum "qemu-${QEMU_VERSION}.tar.xz"
+          tar xf "qemu-${QEMU_VERSION}.tar.xz" && rm "qemu-${QEMU_VERSION}.tar.xz"
+          "$GITHUB_WORKSPACE/scripts/build-qemu.sh" ~/qemu-${QEMU_VERSION}
+          mkdir -p ~/qemu-lacc
+          cp ~/qemu-${QEMU_VERSION}/build-lacc/qemu-system-x86_64 ~/qemu-lacc/
+          cp -r ~/qemu-${QEMU_VERSION}/pc-bios ~/qemu-lacc/pc-bios
+          rm -rf ~/qemu-${QEMU_VERSION}
+
+      - name: Driver builds clean (W=1), sparse and checkpatch --strict
+        run: make -C driver check KDIR=$HOME/linux
+      - name: Driver module
+        run: make -C driver KDIR=$HOME/linux
+      - name: Guest programs (static)
+        run: |
+          cmake -S . -B build/guest -G Ninja -DCMAKE_BUILD_TYPE=Release -DLACC_STATIC=ON -DLACC_TESTS=OFF
+          ninja -C build/guest
+          (cd laccctl && RUSTFLAGS="-C target-feature=+crt-static" cargo build --release --target x86_64-unknown-linux-gnu)
+      - name: Firmware images and the guest initramfs
+        run: |
+          scripts/make-firmware.sh build
+          guest/mkinitramfs.sh driver/lacc.ko build/initramfs.cpio.gz build/guest/lacc-validate build/guest/lacc-mlp \
+            laccctl/target/x86_64-unknown-linux-gnu/release/laccctl
+
+      - name: Bring-up run
+        run: |
+          export QEMU_BIOS=$HOME/qemu-lacc/pc-bios
+          python3 tools/bringup.py --qemu ~/qemu-lacc/qemu-system-x86_64 --kernel ~/linux-bzImage \
+            --initrd build/initramfs.cpio.gz --flash build/flash.img --out build/report
+      - name: Failed checks as annotations
+        if: failure()
+        run: |
+          python3 - <<'EOF'
+          import json, pathlib
+          p = pathlib.Path("build/report/report.json")
+          if not p.exists():
+              print("::error title=bring-up::no report; tail of the serial log:%0A" +
+                    "%0A".join(pathlib.Path("build/report/serial.log").read_text(errors="replace").splitlines()[-20:])[:3000])
+          else:
+              r = json.loads(p.read_text())
+              for x in r["results"]:
+                  if not x["pass"]:
+                      print(f"::error title={x['group']}: {x['name'][:80]}::{x['detail'][:400]}")
+              for s in r["kernel_reports"][:8]:
+                  print(f"::error title=kernel report::{s[:400]}")
+              if not r["summary"]["complete"]:
+                  print(f"::error title=bring-up incomplete::missing stages {r['summary']['missing_stages']}")
+          EOF
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bringup-report
+          path: build/report

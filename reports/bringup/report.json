@@ -1,0 +1,541 @@
+{
+  "summary": {
+    "total": 48,
+    "passed": 48,
+    "failed": 0,
+    "splats": 0,
+    "complete": true,
+    "missing_stages": []
+  },
+  "environment": {
+    "guest_kernel": "Linux 6.12.59",
+    "qemu": "QEMU emulator version 10.1.5 (v10.1.5-dirty)",
+    "openocd": "Open On-Chip Debugger 0.12.0",
+    "wall_seconds": 100,
+    "timed_out": false
+  },
+  "results": [
+    {
+      "group": "pci",
+      "name": "card enumerates as 1234:7acc, class 0x1200",
+      "pass": true,
+      "detail": "0000:01:00.0 class 0x120000",
+      "metrics": {}
+    },
+    {
+      "group": "pci",
+      "name": "BARs: 64 KiB registers, 64 MiB device memory, MSI-X table",
+      "pass": true,
+      "detail": "BAR0 65536, BAR2 67108864",
+      "metrics": {
+        "bar0_bytes": 65536,
+        "bar2_bytes": 67108864,
+        "bar4_bytes": 4096
+      }
+    },
+    {
+      "group": "pci",
+      "name": "PCIe endpoint: link trained, AER present",
+      "pass": true,
+      "detail": "express endpoint (type 0) at 0x80, link up at 2.5 GT/s x1, AER at 0x100",
+      "metrics": {
+        "link_speed_code": 1,
+        "link_width": 1,
+        "pcie_cap_offset": 128
+      }
+    },
+    {
+      "group": "pci",
+      "name": "MSI-X: two vectors allocated",
+      "pass": true,
+      "detail": "2 vectors",
+      "metrics": {
+        "vectors": 2
+      }
+    },
+    {
+      "group": "driver",
+      "name": "ioctl INFO matches the register map",
+      "pass": true,
+      "detail": "hw 0x10002 caps 0x7f status 0x9 fw 2 clock 1500 MHz",
+      "metrics": {
+        "devmem_mib": 64
+      }
+    },
+    {
+      "group": "driver",
+      "name": "debugfs register dump reads the ID",
+      "pass": true,
+      "detail": "ID              0x4c414343",
+      "metrics": {}
+    },
+    {
+      "group": "driver",
+      "name": "device memory allocator: fill, reuse, exhaustion",
+      "pass": true,
+      "detail": "allocated 64 MiB, then 60 MiB again",
+      "metrics": {
+        "allocated_mib": 64
+      }
+    },
+    {
+      "group": "dma",
+      "name": "host -> card -> host round trip, scatter-gather",
+      "pass": true,
+      "detail": "21 round trips, 4 B to 9 MiB, aligned and misaligned",
+      "metrics": {
+        "round_trips": 21
+      }
+    },
+    {
+      "group": "dma",
+      "name": "host -> card -> host round trip, per-segment",
+      "pass": true,
+      "detail": "21 round trips, 4 B to 9 MiB, aligned and misaligned",
+      "metrics": {
+        "round_trips": 21
+      }
+    },
+    {
+      "group": "dma",
+      "name": "fill engine and mmap of device memory agree",
+      "pass": true,
+      "detail": "BAR2 mapping and DMA see the same memory",
+      "metrics": {}
+    },
+    {
+      "group": "dma",
+      "name": "out-of-range and foreign buffers are refused",
+      "pass": true,
+      "detail": "EACCES for a transfer past the end of the buffer",
+      "metrics": {}
+    },
+    {
+      "group": "compute",
+      "name": "LNS8 GEMM equals the reference bit for bit",
+      "pass": true,
+      "detail": "6 shapes up to 320x288x256 identical; datapath vs exact products of the same inputs: 0.204% RMS",
+      "metrics": {
+        "worst_relative_rms_error": 0.00204143134831
+      }
+    },
+    {
+      "group": "compute",
+      "name": "INT8 GEMM equals the reference",
+      "pass": true,
+      "detail": "6 shapes identical",
+      "metrics": {}
+    },
+    {
+      "group": "compute",
+      "name": "LNS8 vs INT8 on the card: matmul error by data shape, and modelled energy",
+      "pass": true,
+      "detail": "error vs FP64, Gaussian: LNS8 3.55%, INT8 1.51%; heavy-tailed: LNS8 3.12%, INT8 22.97%; energy per GEMM LNS8 7.5 uJ, INT8 18.9 uJ (modelled)",
+      "metrics": {
+        "gaussian_int8_rel_error": 0.0150547530918,
+        "gaussian_lns8_rel_error": 0.0355040588409,
+        "heavy_tail_int8_rel_error": 0.229746889996,
+        "heavy_tail_lns8_rel_error": 0.0312214278142,
+        "int8_energy_uj_per_gemm": 18.9,
+        "lns8_energy_uj_per_gemm": 7.5
+      }
+    },
+    {
+      "group": "board",
+      "name": "PMBus regulator on the card's SMBus: hwmon sensors in range",
+      "pass": true,
+      "detail": "VIN 12.00 V, VOUT 0.900 V, 39.4 C, POUT 18.0 W",
+      "metrics": {
+        "pout_w": 18,
+        "temp_c": 39.375,
+        "vin_v": 12,
+        "vout_v": 0.9
+      }
+    },
+    {
+      "group": "board",
+      "name": "FRU EEPROM: record and checksum",
+      "pass": true,
+      "detail": "LFRU1;board=LACC-PCIe-x16;rev=B;serial=LACC2026A0001;mfg=2026-10;tdp=75W",
+      "metrics": {}
+    },
+    {
+      "group": "board",
+      "name": "FRU EEPROM is write-protected",
+      "pass": true,
+      "detail": "write refused by the board",
+      "metrics": {}
+    },
+    {
+      "group": "board",
+      "name": "SPI NOR as MTD: firmware partitions present",
+      "pass": true,
+      "detail": "lacc-fw-a, lacc-fw-b, lacc-config",
+      "metrics": {}
+    },
+    {
+      "group": "board",
+      "name": "boot ROM verified both slots and booted one",
+      "pass": true,
+      "detail": "status 0x191, slot a, version 2",
+      "metrics": {
+        "fw_version": 2
+      }
+    },
+    {
+      "group": "concurrency",
+      "name": "8 threads, each with its own open file, submitting at once",
+      "pass": true,
+      "detail": "480 round trips from 8 threads, 0 errors",
+      "metrics": {
+        "jobs": 480,
+        "seconds": 2.257699129
+      }
+    },
+    {
+      "group": "perf",
+      "name": "host-to-card bandwidth: one SG descriptor vs one descriptor per segment",
+      "pass": true,
+      "detail": "modelled: SG 15.94 GB/s, per-segment 15.77 GB/s (78 descriptors per 16 MiB); emulated wall time: 0.78 GB/s",
+      "metrics": {
+        "per_segment_descriptors": 78,
+        "per_segment_model_gbps": 15.7650967863,
+        "sg_emulated_wall_gbps": 0.777468973238,
+        "sg_model_gbps": 15.938833365
+      }
+    },
+    {
+      "group": "perf",
+      "name": "interrupt coalescing: interrupts under load against latency of a lone job",
+      "pass": true,
+      "detail": "interrupts per 512-job burst: 303 off, 294 at 8 jobs/200 us, 76 at 32 jobs/1 ms; lone-job p50 wake-up: 1793, 1868, 2604 us",
+      "metrics": {
+        "irqs_32_1ms": 76,
+        "irqs_8_200us": 294,
+        "irqs_off": 303,
+        "lone_p50_us_32_1ms": 2604.103,
+        "lone_p50_us_8_200us": 1868.06,
+        "lone_p50_us_off": 1792.576
+      }
+    },
+    {
+      "group": "perf",
+      "name": "GEMM throughput (modelled device time)",
+      "pass": true,
+      "detail": "512^3: LNS8 46.7 TOPS, INT8 48.8 TOPS at 1500 MHz (model: 16384 MACs per clock)",
+      "metrics": {
+        "int8_tops": 48.8181818182,
+        "lns8_tops": 46.6956521739
+      }
+    },
+    {
+      "group": "power",
+      "name": "a power cap holds under load and lifts afterwards",
+      "pass": true,
+      "detail": "uncapped 52.0 W at 1500 MHz; cap 40 W: 39.6 W at 1200 MHz (throttled 1); after: 1500 MHz",
+      "metrics": {
+        "capped_avg_w": 39.5506363636,
+        "capped_peak_w": 42.052,
+        "clock_capped_mhz": 1200,
+        "clock_uncapped_mhz": 1500,
+        "uncapped_avg_w": 51.9996666667
+      }
+    },
+    {
+      "group": "power",
+      "name": "energy counters: board energy and the energy of the work",
+      "pass": true,
+      "detail": "80 MiB of fills: active 5034 uJ (model ~5000); board 1334188 uJ over 0.06 s, 21.1 W average",
+      "metrics": {
+        "active_uj": 5034,
+        "board_uj": 1334188,
+        "seconds": 0.063254964
+      }
+    },
+    {
+      "group": "faults",
+      "name": "an injected DMA error fails that job only",
+      "pass": true,
+      "detail": "first job status 1, next job ok",
+      "metrics": {}
+    },
+    {
+      "group": "faults",
+      "name": "a hung engine is detected, reset and the job aborted",
+      "pass": true,
+      "detail": "engine reported HALTED; watchdog reset the card and aborted the job after 50 ms; the next job ran",
+      "metrics": {
+        "detect_ms": 50.758414
+      }
+    },
+    {
+      "group": "faults",
+      "name": "link down: registers read all-ones, the driver waits, resets and recovers",
+      "pass": true,
+      "detail": "ID read 0x4c414343, 0xffffffff while down, 0x4c414343 after; 1 outage counted, 1 reset; jobs run again after 519 ms",
+      "metrics": {
+        "recovery_ms": 519.432077
+      }
+    },
+    {
+      "group": "faults",
+      "name": "a corrupt completion is counted and its job recovered",
+      "pass": true,
+      "detail": "bad completion counted; job aborted by the watchdog; next job ok",
+      "metrics": {}
+    },
+    {
+      "group": "faults",
+      "name": "a thermal event throttles and is reported",
+      "pass": true,
+      "detail": "thermal interrupt and throttle",
+      "metrics": {}
+    },
+    {
+      "group": "inference",
+      "name": "MLP classifier on the card: LNS8 and INT8 vs FP32",
+      "pass": true,
+      "detail": "4 card GEMMs equal the reference; accuracy FP32 85.69%, LNS8 85.60%, INT8 85.50% on 2048 held-out samples",
+      "metrics": {
+        "fp32_accuracy": 0.8569,
+        "lns8_accuracy": 0.856,
+        "int8_accuracy": 0.855,
+        "lns8_agreement": 0.9912,
+        "int8_agreement": 0.9824
+      }
+    },
+    {
+      "group": "jtag",
+      "name": "TAP answers with the card's IDCODE",
+      "pass": true,
+      "detail": "IDCODE 0x1acc0001",
+      "metrics": {},
+      "source": "host"
+    },
+    {
+      "group": "jtag",
+      "name": "registers read through the debug port",
+      "pass": true,
+      "detail": "ID 0x4c414343, firmware 2, STATUS 0x9",
+      "metrics": {
+        "read_ms": 103.74927299987273
+      },
+      "source": "host"
+    },
+    {
+      "group": "jtag",
+      "name": "write and read back over JTAG; reads have no side effects",
+      "pass": true,
+      "detail": "SCRATCH 0x0badcafe, ID still 0x4c414343",
+      "metrics": {},
+      "source": "host"
+    },
+    {
+      "group": "jtag",
+      "name": "the debug port reads the card while the PCIe link is down",
+      "pass": true,
+      "detail": "ID 0x4c414343, STATUS 0x9 with the link down (the host sees all-ones)",
+      "metrics": {},
+      "source": "host"
+    },
+    {
+      "group": "jtag",
+      "name": "a link drop injected over JTAG: the driver notices and recovers",
+      "pass": true,
+      "detail": "link_downs 1 -> 2, resets 3 -> 4; driver checks pass afterwards",
+      "metrics": {}
+    },
+    {
+      "group": "jtag",
+      "name": "a value written over JTAG reads back over PCIe",
+      "pass": true,
+      "detail": "SCRATCH over BAR0: 0x0badcafe",
+      "metrics": {}
+    },
+    {
+      "group": "firmware",
+      "name": "update slot B to version 3 and boot it",
+      "pass": true,
+      "detail": "version 2 -> 3, booted slot b. wrote version 3 to slot B in 211 ms; card rebooted in 20 ms and runs version 3 from slot b",
+      "metrics": {}
+    },
+    {
+      "group": "firmware",
+      "name": "booting version 3 raised the anti-rollback floor",
+      "pass": true,
+      "detail": "floor is now 2 (image rollback index 2)",
+      "metrics": {}
+    },
+    {
+      "group": "firmware",
+      "name": "a corrupt image is refused before writing",
+      "pass": true,
+      "detail": "laccctl: refusing /fw/fw-bad.bin: payload SHA-256 mismatch",
+      "metrics": {}
+    },
+    {
+      "group": "firmware",
+      "name": "boot ROM rejects a corrupt slot and falls back",
+      "pass": true,
+      "detail": "asked for slot A, booted b (status 0x122). wrote version 9 to slot A in 223 ms; card rebooted in 10 ms and runs version 3 from slot b",
+      "metrics": {}
+    },
+    {
+      "group": "firmware",
+      "name": "a rollback below the floor is refused",
+      "pass": true,
+      "detail": "tool: laccctl: refusing /fw/fw-1.bin: rollback index 0 is below the card's floor 2; forced: boot ROM stayed on slot b, version 3",
+      "metrics": {}
+    },
+    {
+      "group": "firmware",
+      "name": "the card computes correctly after the firmware changes",
+      "pass": true,
+      "detail": "compute checks re-run",
+      "metrics": {}
+    },
+    {
+      "group": "trace",
+      "name": "driver tracepoints to a Perfetto trace",
+      "pass": true,
+      "detail": "666 job slices; 1720 events, 666 jobs (0 failed, 0 resets); host latency p50 3084 us, p99 15648 us; wrote /tmp/trace.json",
+      "metrics": {}
+    },
+    {
+      "group": "driver",
+      "name": "remove the driver while a client has the device open",
+      "pass": true,
+      "detail": "refused: rmmod: can't unload module 'lacc': Resource temporarily unavailable",
+      "metrics": {}
+    },
+    {
+      "group": "driver",
+      "name": "unload and reload three times; the card comes back",
+      "pass": true,
+      "detail": "rmmod/insmod x3, then the driver checks",
+      "metrics": {}
+    },
+    {
+      "group": "kernel",
+      "name": "kmemleak: no leaks from the driver",
+      "pass": true,
+      "detail": "0 unreferenced objects in total, 0 with lacc frames",
+      "metrics": {}
+    },
+    {
+      "group": "kernel",
+      "name": "no KASAN, lockdep, DMA-API or WARN reports in the kernel log",
+      "pass": true,
+      "detail": "0 reports",
+      "metrics": {}
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Matmul error vs FP64, Gaussian data, LNS8",
+      "value": 0.0355040588409,
+      "text": "3.55%"
+    },
+    {
+      "label": "Matmul error vs FP64, Gaussian data, INT8",
+      "value": 0.0150547530918,
+      "text": "1.51%"
+    },
+    {
+      "label": "Matmul error vs FP64, heavy-tailed data, LNS8",
+      "value": 0.0312214278142,
+      "text": "3.12%"
+    },
+    {
+      "label": "Matmul error vs FP64, heavy-tailed data, INT8",
+      "value": 0.229746889996,
+      "text": "22.97%"
+    },
+    {
+      "label": "Energy per 192x192x256 GEMM, LNS8 (modelled)",
+      "value": 7.5,
+      "text": "7.5 \u00b5J"
+    },
+    {
+      "label": "Energy per 192x192x256 GEMM, INT8 (modelled)",
+      "value": 18.9,
+      "text": "18.9 \u00b5J"
+    },
+    {
+      "label": "Classifier accuracy, FP32 (host)",
+      "value": 0.8569,
+      "text": "85.69%"
+    },
+    {
+      "label": "Classifier accuracy, LNS8 on the card",
+      "value": 0.856,
+      "text": "85.60%"
+    },
+    {
+      "label": "Classifier accuracy, INT8 on the card",
+      "value": 0.855,
+      "text": "85.50%"
+    },
+    {
+      "label": "Predictions equal to FP32, LNS8",
+      "value": 0.9912,
+      "text": "99.12%"
+    },
+    {
+      "label": "Predictions equal to FP32, INT8",
+      "value": 0.9824,
+      "text": "98.24%"
+    },
+    {
+      "label": "GEMM throughput, LNS8 (modelled)",
+      "value": 46.6956521739,
+      "text": "46.7 TOPS"
+    },
+    {
+      "label": "Host-to-card DMA, one SG descriptor (modelled)",
+      "value": 15.938833365,
+      "text": "15.94 GB/s"
+    },
+    {
+      "label": "Host-to-card DMA, descriptor per segment (modelled)",
+      "value": 15.7650967863,
+      "text": "15.77 GB/s"
+    },
+    {
+      "label": "Interrupts for 512 jobs, coalescing off",
+      "value": 303,
+      "text": "303"
+    },
+    {
+      "label": "Interrupts for 512 jobs, 32 jobs / 1 ms",
+      "value": 76,
+      "text": "76"
+    },
+    {
+      "label": "Board power under INT8 load, uncapped",
+      "value": 51.9996666667,
+      "text": "52.0 W"
+    },
+    {
+      "label": "Board power under the same load, 40 W cap",
+      "value": 39.5506363636,
+      "text": "39.6 W"
+    },
+    {
+      "label": "Clock the controller settled at under the cap",
+      "value": 1200,
+      "text": "1200 MHz"
+    },
+    {
+      "label": "Hung engine: detected, reset and job aborted",
+      "value": 50.758414,
+      "text": "51 ms"
+    },
+    {
+      "label": "Link down: driver back to running jobs",
+      "value": 519.432077,
+      "text": "519 ms"
+    }
+  ],
+  "kernel_reports": []
+}

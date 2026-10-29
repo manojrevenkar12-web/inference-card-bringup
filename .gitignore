@@ -1,0 +1,16 @@
+/build/
+/laccctl/target/
+/reports/bringup/flash-run.img
+/reports/bringup/openocd.log
+driver/*.o
+driver/*.ko
+driver/*.mod
+driver/*.mod.c
+driver/.*.cmd
+driver/Module.symvers
+driver/modules.order
+driver/check.log
+driver/.tmp_versions/
+__pycache__/
+.pytest_cache/
+.ruff_cache/

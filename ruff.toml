@@ -1,0 +1,9 @@
+line-length = 120
+target-version = "py310"
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "PL", "BLE", "S110", "EXE", "ISC"]
+ignore = ["PLR2004", "PLR0913", "PLR0912", "PLR0915", "PLC0415", "S101"]
+
+[lint.per-file-ignores]
+"tests/*" = ["PLW1510"]

@@ -1,0 +1,83 @@
+# Register map of the LACC virtual inference card (BAR0, 64 KiB, little-endian, 32-bit access).
+# One source of truth: tools/gen_regs.py generates include/lacc_regs.h (device model, driver,
+# runtime), laccctl/src/regs.rs (Rust tool) and docs/REGISTERS.md.
+device:
+  name: lacc
+  vendor_id: 0x1234          # QEMU's test vendor ID; the card is fictional
+  device_id: 0x7acc
+  revision: 0x01
+  class: 0x1200              # processing accelerator
+  bar0_size: 0x10000
+  bar2_size: 0x4000000       # 64 MiB device memory ("HBM")
+  msix_vectors: 2            # 0 = completions, 1 = errors and events
+  id_magic: 0x4C414343       # "LACC"
+  hw_version: 0x00010002
+  jtag_idcode: 0x1ACC0001
+registers:
+  - {name: ID,              offset: 0x0000, access: ro, doc: "Magic 0x4C414343 (\"LACC\")"}
+  - {name: HW_VERSION,      offset: 0x0004, access: ro, doc: "Hardware version, major<<16 | minor"}
+  - {name: CAPS,            offset: 0x0008, access: ro, doc: "Capability bits (CAP_*)"}
+  - {name: SCRATCH,         offset: 0x000C, access: rw, doc: "Scratch register for bring-up read/write tests"}
+  - {name: STATUS,          offset: 0x0010, access: ro, doc: "Device status (STATUS_*)"}
+  - {name: CONTROL,         offset: 0x0014, access: rw, doc: "Device control (CONTROL_*)"}
+  - {name: DEVMEM_SIZE,     offset: 0x0018, access: ro, doc: "Bytes of device memory behind BAR2"}
+  - {name: TIMESTAMP_LO,    offset: 0x001C, access: ro, doc: "Device time in ns, low word (latches high word)"}
+  - {name: TIMESTAMP_HI,    offset: 0x0020, access: ro, doc: "Device time in ns, high word (latched)"}
+  - {name: SQ_BASE_LO,      offset: 0x0040, access: rw, doc: "Submission ring base (host DMA address), low"}
+  - {name: SQ_BASE_HI,      offset: 0x0044, access: rw, doc: "Submission ring base, high"}
+  - {name: SQ_SIZE,         offset: 0x0048, access: rw, doc: "Submission ring entries (power of two, 2..4096)"}
+  - {name: SQ_TAIL,         offset: 0x004C, access: rw, doc: "Doorbell: index after the last submitted descriptor"}
+  - {name: SQ_HEAD,         offset: 0x0050, access: ro, doc: "Index of the next descriptor the device will fetch"}
+  - {name: CQ_BASE_LO,      offset: 0x0060, access: rw, doc: "Completion ring base (host DMA address), low"}
+  - {name: CQ_BASE_HI,      offset: 0x0064, access: rw, doc: "Completion ring base, high"}
+  - {name: CQ_SIZE,         offset: 0x0068, access: rw, doc: "Completion ring entries (power of two)"}
+  - {name: CQ_HEAD,         offset: 0x006C, access: rw, doc: "Host: index after the last completion consumed"}
+  - {name: CQ_TAIL,         offset: 0x0070, access: ro, doc: "Index after the last completion written"}
+  - {name: IRQ_STATUS,      offset: 0x0080, access: w1c, doc: "Interrupt causes (IRQ_*), write 1 to clear"}
+  - {name: IRQ_MASK,        offset: 0x0084, access: rw, doc: "1 = cause enabled"}
+  - {name: IRQ_COALESCE,    offset: 0x0088, access: rw, doc: "Completions per interrupt [15:0], max delay in us [31:16]"}
+  - {name: FW_STATUS,       offset: 0x00A0, access: ro, doc: "Boot ROM result (FW_*)"}
+  - {name: FW_VERSION,      offset: 0x00A4, access: ro, doc: "Version of the running firmware"}
+  - {name: FW_MIN_VERSION,  offset: 0x00A8, access: ro, doc: "Anti-rollback floor (one-way, kept in the flash config sector)"}
+  - {name: FW_CONTROL,      offset: 0x00AC, access: wo, doc: "Write FW_REBOOT to re-run the boot ROM"}
+  - {name: POWER_STATE,     offset: 0x00C0, access: rw, doc: "0 = P0 full clock, 1 = P1, 2 = P2"}
+  - {name: POWER_CAP_MW,    offset: 0x00C4, access: rw, doc: "Board power cap in mW (0 = firmware default)"}
+  - {name: TEMP_MC,         offset: 0x00C8, access: ro, doc: "Die temperature in milli-degrees C"}
+  - {name: ENERGY_UJ_LO,    offset: 0x00CC, access: ro, doc: "Board energy since reset in uJ (integral of board power), low (latches high)"}
+  - {name: ENERGY_UJ_HI,    offset: 0x00D0, access: ro, doc: "Energy, high (latched)"}
+  - {name: CLOCK_MHZ,       offset: 0x00D4, access: ro, doc: "Current compute clock"}
+  - {name: POWER_MW,        offset: 0x00D8, access: ro, doc: "Current board power"}
+  - {name: ACTIVE_ENERGY_UJ_LO, offset: 0x00DC, access: ro, doc: "Modelled energy of the work alone in uJ, low (latches high)"}
+  - {name: ACTIVE_ENERGY_UJ_HI, offset: 0x00E0, access: ro, doc: "Active energy, high (latched)"}
+  - {name: PERF_CMDS,       offset: 0x0100, access: ro, doc: "Descriptors completed"}
+  - {name: PERF_DMA_KB,     offset: 0x0104, access: ro, doc: "KiB moved by DMA"}
+  - {name: PERF_MMACS,      offset: 0x0108, access: ro, doc: "Millions of multiply-accumulates"}
+  - {name: PERF_BUSY_US,    offset: 0x010C, access: ro, doc: "Microseconds the engine was busy"}
+  - {name: PERF_IRQS,       offset: 0x0110, access: ro, doc: "MSI-X messages sent"}
+  - {name: FAULT_INJECT,    offset: 0x0140, access: rw, doc: "Arm a fault for the next descriptor or now (FAULT_*)"}
+  - {name: ERR_CODE,        offset: 0x0144, access: ro, doc: "Last error (ERR_*)"}
+  - {name: I2C_CTRL,        offset: 0x0200, access: rw, doc: "SMBus transaction: addr [6:0], op [11:8], read [12], start [31]"}
+  - {name: I2C_CMD,         offset: 0x0204, access: rw, doc: "SMBus command byte"}
+  - {name: I2C_LEN,         offset: 0x0208, access: rw, doc: "Block length (block and i2c-block ops)"}
+  - {name: I2C_STATUS,      offset: 0x020C, access: ro, doc: "I2C_DONE, I2C_NAK"}
+  - {name: I2C_DATA,        offset: 0x0240, access: rw, doc: "64-byte data buffer (0x240..0x27F)"}
+  - {name: SPI_CTRL,        offset: 0x0300, access: rw, doc: "SPI_CS (chip select held), SPI_START"}
+  - {name: SPI_LEN,         offset: 0x0304, access: rw, doc: "Bytes to shift (1..256)"}
+  - {name: SPI_STATUS,      offset: 0x0308, access: ro, doc: "SPI_DONE"}
+  - {name: SPI_TX,          offset: 0x0400, access: wo, doc: "256-byte transmit buffer (0x400..0x4FF)"}
+  - {name: SPI_RX,          offset: 0x0500, access: ro, doc: "256-byte receive buffer (0x500..0x5FF)"}
+bits:
+  CAP:      {GEMM_LNS8: 0, GEMM_I8: 1, SG_DMA: 2, I2C: 3, SPI: 4, JTAG: 5, POWER: 6}
+  STATUS:   {READY: 0, BUSY: 1, HALTED: 2, FW_OK: 3, THROTTLED: 4, ERROR: 5, RECOVERY: 6}
+  CONTROL:  {ENABLE: 0, RESET: 1}
+  IRQ:      {COMPLETION: 0, ERROR: 1, THERMAL: 2, FW: 3}
+  FW:       {SLOT_A: 0, SLOT_B: 1, A_VALID: 4, B_VALID: 5, A_ROLLBACK: 6, B_ROLLBACK: 7, LUT_LOADED: 8}
+  FAULT:    {DMA_ERROR: 0, HANG: 1, THERMAL: 2, LINK_DOWN: 3, BAD_CQE: 4}
+  I2C:      {DONE: 0, NAK: 1}
+  SPI:      {CS: 0, START: 1, DONE: 0}
+values:
+  FW_REBOOT: 0x52425400      # "RBT\0"
+  I2C_OP: {QUICK: 0, BYTE: 1, BYTE_DATA: 2, WORD_DATA: 3, BLOCK_DATA: 4, I2C_BLOCK: 5}
+  OPCODE: {NOP: 0, H2D: 1, D2H: 2, GEMM_LNS8: 3, GEMM_I8: 4, SG_H2D: 5, SG_D2H: 6, FILL: 7}
+  CQE_STATUS: {OK: 0, DMA_ERROR: 1, BAD_DESC: 2, RANGE: 3, ABORTED: 4, NO_FIRMWARE: 5}
+  ERR: {NONE: 0, DMA: 1, DESC: 2, RANGE: 3, HANG: 4, THERMAL: 5, RING: 6}

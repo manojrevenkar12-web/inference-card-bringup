@@ -1,0 +1,3 @@
+obj-m := lacc.o
+lacc-y := lacc_main.o lacc_mem.o lacc_i2c.o lacc_spi.o lacc_sysfs.o
+ccflags-y := -I$(src) -I$(src)/../include

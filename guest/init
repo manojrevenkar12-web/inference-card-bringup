@@ -1,0 +1,21 @@
+#!/bin/sh
+# PID 1 of the validation guest: mount the usual file systems, load the card's driver,
+# run the requested suite and power off. Output goes to the serial console.
+export PATH=/bin:/sbin:/usr/bin
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev
+mount -t tmpfs tmp /tmp
+mount -t debugfs debugfs /sys/kernel/debug
+mount -t tracefs tracefs /sys/kernel/tracing 2>/dev/null
+mode=$(sed -n 's/.*lacc\.mode=\([a-z]*\).*/\1/p' /proc/cmdline)
+echo "@@BOOT kernel $(uname -r)"
+if insmod /lib/modules/lacc.ko; then echo "@@INSMOD ok"; else echo "@@INSMOD failed"; fi
+case "$mode" in
+  shell) setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1' ;;
+  smoke) /validate/smoke.sh ;;
+  *) /validate/run.sh ;;
+esac
+echo "@@DONE"
+sync
+poweroff -f
